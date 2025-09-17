@@ -2,7 +2,7 @@
 using tasking_api.Main.Models.DTO;
 using tasking_api.Main.Models.DTO.Request;
 
-namespace tasking_api.Main.Service.Contracts
+namespace tasking_api.Main.Service.Contracts.Providers
 {
     public interface ICalendarProvider
     {

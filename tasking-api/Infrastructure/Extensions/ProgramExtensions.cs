@@ -7,7 +7,8 @@ using tasking_api.Main.Secure;
 using tasking_api.Main.Secure.Contracts;
 using tasking_api.Main.Service;
 using tasking_api.Main.Service.Contracts;
-using tasking_api.Main.Service.Providers;
+using tasking_api.Main.Service.Contracts.Providers;
+using tasking_api.Main.Service.Providers.Calendar;
 
 namespace tasking_api.Infrastructure.Extensions
 {
@@ -15,10 +16,10 @@ namespace tasking_api.Infrastructure.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Unit of Work registration (MUST be before services that depend on it)
+            // Unit of Work registration
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // Repository registrations (still needed for other services that might use them directly)
+            // Repository registrations
             services.AddScoped<IBoardTaskRepository, BoardTaskRepository>();
             services.AddScoped<IBoardRepository, BoardRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
@@ -31,7 +32,6 @@ namespace tasking_api.Infrastructure.Extensions
 
             // Calendar Provider registrations
             services.AddScoped<ICalendarProvider, GoogleCalendarProvider>();
-            // services.AddScoped<ICalendarProvider, OutlookCalendarProvider>(); // Add when implemented
             services.AddScoped<ICalendarProviderFactory, CalendarProviderFactory>();
 
             // Security registrations

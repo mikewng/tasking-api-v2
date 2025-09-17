@@ -1,6 +1,6 @@
-﻿using tasking_api.Main.Service.Contracts;
+﻿using tasking_api.Main.Service.Contracts.Providers;
 
-namespace tasking_api.Main.Service.Providers
+namespace tasking_api.Main.Service.Providers.Calendar
 {
     public class CalendarProviderFactory : ICalendarProviderFactory
     {

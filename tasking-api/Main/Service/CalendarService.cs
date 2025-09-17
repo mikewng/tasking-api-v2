@@ -2,6 +2,7 @@
 using tasking_api.Main.Models.DTO;
 using tasking_api.Main.Models.DTO.Request;
 using tasking_api.Main.Service.Contracts;
+using tasking_api.Main.Service.Contracts.Providers;
 
 namespace tasking_api.Main.Service
 {
