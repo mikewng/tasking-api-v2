@@ -9,11 +9,11 @@ namespace tasking_api.Main.Service
 {
     public class AuthService : IAuthService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AuthService(IUserRepository userRepository)
+        public AuthService(IUnitOfWork unitOfWork)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result> LoginAsync(LoginRequest loginRequest, CancellationToken cancellationToken)
@@ -23,7 +23,7 @@ namespace tasking_api.Main.Service
                 return Result.Fail("Email and password are required");
             }
 
-            var user = await _userRepository.GetByEmailAsync(loginRequest.Email, cancellationToken);
+            var user = await _unitOfWork.Users.GetByEmailAsync(loginRequest.Email, cancellationToken);
             if (user == null)
             {
                 return Result.Fail("Invalid email or password");
@@ -35,7 +35,13 @@ namespace tasking_api.Main.Service
             }
 
             user.LastLoginAt = DateTime.UtcNow;
-            await _userRepository.UpdateAsync(user, cancellationToken);
+            var updateSuccess = await _unitOfWork.Users.UpdateAsync(user, cancellationToken);
+            if (!updateSuccess)
+            {
+                return Result.Fail("Failed to update user login time");
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Ok();
         }
@@ -54,12 +60,12 @@ namespace tasking_api.Main.Service
                 return Result.Fail("Password must be at least 6 characters long");
             }
 
-            if (await _userRepository.EmailExistsAsync(registerRequest.Email, cancellationToken))
+            if (await _unitOfWork.Users.EmailExistsAsync(registerRequest.Email, cancellationToken))
             {
                 return Result.Fail("Email already exists");
             }
 
-            if (await _userRepository.UsernameExistsAsync(registerRequest.Username, cancellationToken))
+            if (await _unitOfWork.Users.UsernameExistsAsync(registerRequest.Username, cancellationToken))
             {
                 return Result.Fail("Username already exists");
             }
@@ -72,10 +78,11 @@ namespace tasking_api.Main.Service
                 Email = registerRequest.Email,
                 PasswordHash = passwordHash,
                 CreatedAt = DateTime.UtcNow,
-                LastLoginAt = DateTime.Now
+                LastLoginAt = DateTime.UtcNow
             };
 
-            await _userRepository.CreateAsync(user, cancellationToken);
+            await _unitOfWork.Users.AddAsync(user, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Ok();
         }

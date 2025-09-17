@@ -7,9 +7,9 @@ namespace tasking_api.Main.Service
 {
     public class BoardTaskService : IBoardTaskService
     {
-        private readonly IBoardTaskRepository _boardTaskRepo;
-        public BoardTaskService(IBoardTaskRepository boardTaskRepository) {
-            _boardTaskRepo = boardTaskRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        public BoardTaskService(IUnitOfWork unitOfWork) {
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<BoardTask>> CreateTask(BoardTaskRequest taskRequest)
@@ -37,7 +37,8 @@ namespace tasking_api.Main.Service
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _boardTaskRepo.AddAsync(boardTask, CancellationToken.None);
+                await _unitOfWork.BoardTasks.AddAsync(boardTask, CancellationToken.None);
+                await _unitOfWork.SaveChangesAsync(CancellationToken.None);
 
                 return Result<BoardTask>.Ok(boardTask);
             }
@@ -53,7 +54,7 @@ namespace tasking_api.Main.Service
                 return Result<BoardTask>.Fail("Task ID is required.");
             }
 
-            var task = await _boardTaskRepo.GetAsync(id, CancellationToken.None);
+            var task = await _unitOfWork.BoardTasks.GetAsync(id, CancellationToken.None);
             if (task == null)
             {
                 return Result<BoardTask>.Fail("Task not found.");
@@ -68,13 +69,19 @@ namespace tasking_api.Main.Service
                 return Result<BoardTask>.Fail("Task ID is required.");
             }
             
-            var existingTask = await _boardTaskRepo.GetAsync(id, CancellationToken.None);
+            var existingTask = await _unitOfWork.BoardTasks.GetAsync(id, CancellationToken.None);
             if (existingTask == null)
             {
                 return Result<BoardTask>.Fail("Task not found.");
             }
             
-            await _boardTaskRepo.RemoveAsync(existingTask, CancellationToken.None);
+            var removeSuccess = await _unitOfWork.BoardTasks.RemoveAsync(existingTask, CancellationToken.None);
+            if (!removeSuccess)
+            {
+                return Result<BoardTask>.Fail("Failed to remove task.");
+            }
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
             return Result<BoardTask>.Ok(existingTask);
         }
         public async Task<Result<BoardTask>> UpdateTask(BoardTaskRequest taskRequest)
@@ -94,7 +101,7 @@ namespace tasking_api.Main.Service
                 return Result<BoardTask>.Fail("Board ID is required.");
             }
 
-            var existingTask = await _boardTaskRepo.GetAsync(taskRequest.Id.Value, CancellationToken.None);
+            var existingTask = await _unitOfWork.BoardTasks.GetAsync(taskRequest.Id.Value, CancellationToken.None);
                 
             if (existingTask == null)
             {
@@ -107,6 +114,13 @@ namespace tasking_api.Main.Service
             existingTask.BoardId = taskRequest.BoardId;
             existingTask.UpdatedAt = DateTime.UtcNow;
 
+            var updateSuccess = await _unitOfWork.BoardTasks.UpdateAsync(existingTask, CancellationToken.None);
+            if (!updateSuccess)
+            {
+                return Result<BoardTask>.Fail("Failed to update task.");
+            }
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
             return Result<BoardTask>.Ok(existingTask);
 
         }

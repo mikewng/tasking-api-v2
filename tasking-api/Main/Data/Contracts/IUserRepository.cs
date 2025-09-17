@@ -7,8 +7,9 @@ namespace tasking_api.Main.Data.Contracts
         Task<User?> GetByEmailAsync(string email, CancellationToken ct = default);
         Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default);
         Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default);
-        Task<User> CreateAsync(User user, CancellationToken ct = default);
-        Task<User> UpdateAsync(User user, CancellationToken ct = default);
+        Task AddAsync(User user, CancellationToken ct = default);
+        Task<bool> UpdateAsync(User user, CancellationToken ct = default);
+        Task<bool> RemoveAsync(User user, CancellationToken ct = default);
         Task<bool> EmailExistsAsync(string email, CancellationToken ct = default);
         Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default);
     }
