@@ -7,11 +7,11 @@ namespace tasking_api.Main.Service
 {
     public class BoardService : IBoardService
     {
-        private readonly IBoardRepository _boardRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public BoardService(IBoardRepository boardRepository)
+        public BoardService(IUnitOfWork unitOfWork)
         {
-            _boardRepo = boardRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<Board>> CreateBoard(BoardRequest boardRequest)
@@ -31,7 +31,8 @@ namespace tasking_api.Main.Service
                     OwnerId = Guid.Parse("fc8e8156-8f3b-11f0-9d7c-9c6b00830113")
                 };
 
-                await _boardRepo.AddAsync(board, CancellationToken.None);
+                await _unitOfWork.Boards.AddAsync(board, CancellationToken.None);
+                await _unitOfWork.SaveChangesAsync(CancellationToken.None);
                 return Result<Board>.Ok(board);
             }
             catch (Exception ex)
@@ -44,13 +45,19 @@ namespace tasking_api.Main.Service
         {
             try
             {
-                var board = await _boardRepo.GetAsync(id, CancellationToken.None);
+                var board = await _unitOfWork.Boards.GetAsync(id, CancellationToken.None);
                 if (board == null)
                 {
                     return Result<Board>.Fail("Board not found");
                 }
 
-                await _boardRepo.RemoveAsync(board, CancellationToken.None);
+                var removeSuccess = await _unitOfWork.Boards.RemoveAsync(board, CancellationToken.None);
+                if (!removeSuccess)
+                {
+                    return Result<Board>.Fail("Failed to remove board");
+                }
+
+                await _unitOfWork.SaveChangesAsync(CancellationToken.None);
                 return Result<Board>.Ok(board);
             }
             catch (Exception ex)
@@ -63,7 +70,7 @@ namespace tasking_api.Main.Service
         {
             try
             {
-                var board = await _boardRepo.GetAsync(id, CancellationToken.None);
+                var board = await _unitOfWork.Boards.GetAsync(id, CancellationToken.None);
                 if (board == null)
                 {
                     return Result<Board>.Fail("Board not found");
@@ -91,7 +98,7 @@ namespace tasking_api.Main.Service
                     return Result<Board>.Fail("Board name is required");
                 }
 
-                var existingBoard = await _boardRepo.GetAsync(boardRequest.Id.Value, CancellationToken.None);
+                var existingBoard = await _unitOfWork.Boards.GetAsync(boardRequest.Id.Value, CancellationToken.None);
                 if (existingBoard == null)
                 {
                     return Result<Board>.Fail("Board not found");
@@ -100,6 +107,13 @@ namespace tasking_api.Main.Service
                 existingBoard.Name = boardRequest.Name.Trim();
                 existingBoard.Description = boardRequest.Description?.Trim();
                 
+                var updateSuccess = await _unitOfWork.Boards.UpdateAsync(existingBoard, CancellationToken.None);
+                if (!updateSuccess)
+                {
+                    return Result<Board>.Fail("Failed to update board");
+                }
+
+                await _unitOfWork.SaveChangesAsync(CancellationToken.None);
                 return Result<Board>.Ok(existingBoard);
             }
             catch (Exception ex)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using tasking_api.Infrastructure.Context;
+using tasking_api.Infrastructure.Data;
 using tasking_api.Main.Data;
 using tasking_api.Main.Data.Contracts;
 using tasking_api.Main.Secure;
@@ -14,7 +15,10 @@ namespace tasking_api.Infrastructure.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Repository registrations
+            // Unit of Work registration (MUST be before services that depend on it)
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Repository registrations (still needed for other services that might use them directly)
             services.AddScoped<IBoardTaskRepository, BoardTaskRepository>();
             services.AddScoped<IBoardRepository, BoardRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
