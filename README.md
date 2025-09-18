@@ -2,7 +2,7 @@
 This is a simple and low-weight tasking application designed for keeping track of work items, chores, activities, etc. Users can create their own account, create multiple boards and tasks in those boards. There is also an option to connect to their preferred calendar application, which allows them 
 to forward these tasks either manually or toggle to have it be automatic. Lastly, there will be MCP support for 3rd party applications and this database.
 
-**Note: This is a reclone of an older repo, as the original had exposed keys.
+**Note: This is a reclone and update of an older personal repo due to major structure changes. To view older changes, see: https://github.com/mikewng/tasking-api
 
 TO DO:
  - 3rd-Party Calendar Connection
